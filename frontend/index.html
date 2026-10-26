@@ -1,0 +1,649 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Student Records</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #172033;
+      background: #f4f7fb;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+    }
+
+    .page {
+      width: min(100% - 2rem, 760px);
+      margin: 0 auto;
+      padding: 3rem 0;
+    }
+
+    header { margin-bottom: 1.75rem; }
+
+    .session-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 1rem;
+      color: #657087;
+      font-size: 0.9rem;
+    }
+
+    .eyebrow {
+      margin: 0 0 0.4rem;
+      color: #5267d8;
+      font-size: 0.78rem;
+      font-weight: 750;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.8rem, 5vw, 2.4rem);
+      letter-spacing: -0.04em;
+    }
+
+    header p, .section-note {
+      color: #657087;
+      line-height: 1.6;
+    }
+
+    .panel {
+      margin-top: 1rem;
+      padding: clamp(1.1rem, 4vw, 1.6rem);
+      border: 1px solid #e4e9f2;
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: 0 8px 28px rgb(31 48 86 / 5%);
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 1.15rem;
+    }
+
+    .section-note {
+      margin: 0.35rem 0 1.15rem;
+      font-size: 0.92rem;
+    }
+
+    .fields {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    label {
+      display: grid;
+      gap: 0.4rem;
+      color: #39445a;
+      font-size: 0.88rem;
+      font-weight: 650;
+    }
+
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    input {
+      width: 100%;
+      min-height: 44px;
+      padding: 0.65rem 0.75rem;
+      border: 1px solid #d8deea;
+      border-radius: 9px;
+      background: #fff;
+      color: #172033;
+      font: inherit;
+      font-weight: 400;
+    }
+
+    input:focus {
+      border-color: #5267d8;
+      outline: 3px solid rgb(82 103 216 / 15%);
+    }
+
+    .actions, .lookup-row {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      flex-wrap: wrap;
+    }
+
+    .actions { margin-top: 1.1rem; }
+
+    button {
+      display: inline-flex;
+      min-height: 42px;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      padding: 0.6rem 0.95rem;
+      border: 1px solid transparent;
+      border-radius: 9px;
+      background: #5267d8;
+      color: #fff;
+      cursor: pointer;
+      font: inherit;
+      font-size: 0.9rem;
+      font-weight: 700;
+      transition: background 120ms ease, border-color 120ms ease, transform 120ms ease;
+    }
+
+    button:hover { background: #4054c4; }
+    button:active { transform: translateY(1px); }
+    button:focus-visible { outline: 3px solid rgb(82 103 216 / 28%); outline-offset: 2px; }
+
+    button.secondary {
+      border-color: #d8deea;
+      background: #fff;
+      color: #39445a;
+    }
+
+    button.secondary:hover { background: #f5f7fb; }
+
+    button.danger {
+      border-color: #f1d2d4;
+      background: #fff;
+      color: #bd303b;
+    }
+
+    button.danger:hover { background: #fff3f3; }
+    button svg { width: 17px; height: 17px; }
+
+    .lookup-row input { flex: 1 1 220px; }
+    .record { margin-top: 1rem; }
+    .record[hidden], .edit-panel[hidden], .search-results[hidden] { display: none; }
+
+    .record-heading {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .record-heading p { margin: 0.35rem 0 0; color: #657087; }
+
+    .details {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.9rem;
+      margin: 1.3rem 0 0;
+    }
+
+    .details div {
+      padding: 0.75rem;
+      border-radius: 9px;
+      background: #f6f8fc;
+      overflow-wrap: anywhere;
+    }
+
+    .details dt {
+      margin-bottom: 0.25rem;
+      color: #657087;
+      font-size: 0.77rem;
+      font-weight: 650;
+    }
+
+    .details dd { margin: 0; font-weight: 650; }
+
+    .student-list {
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .pagination[hidden] { display: none; }
+    .pagination-page { color: #657087; font-size: 0.9rem; }
+
+    .student-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.85rem 1rem;
+      border: 1px solid #e4e9f2;
+      border-radius: 10px;
+    }
+
+    .student-item h3 { margin: 0; font-size: 1rem; }
+    .student-item p { margin: 0.3rem 0 0; color: #657087; font-size: 0.88rem; }
+    .student-item button { flex: 0 0 auto; }
+
+    .status {
+      min-height: 1.5rem;
+      margin: 1rem 0 0;
+      color: #5267d8;
+      font-size: 0.9rem;
+    }
+
+    .status.error { color: #bd303b; }
+
+    @media (max-width: 560px) {
+      .page { padding: 2rem 0; }
+      .fields, .details { grid-template-columns: 1fr; }
+      .record-heading { flex-direction: column; }
+      .record-actions { width: 100%; }
+      .record-actions button { flex: 1; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <p class="eyebrow">Student management</p>
+      <h1>Student records</h1>
+      <p>Create a student record, or find an existing student to view, edit, or delete it.</p>
+      <div class="session-bar">
+        <span id="signed-in-user"></span>
+        <button type="button" class="secondary" id="logout-button">Sign out</button>
+      </div>
+    </header>
+
+    <section class="panel" aria-labelledby="create-heading">
+      <h2 id="create-heading">Add a student</h2>
+      <p class="section-note">Enter all student details to create a new record.</p>
+      <form id="create-form">
+        <div class="fields">
+          <label>Full name
+            <input name="name" autocomplete="name" required>
+          </label>
+          <label>Roll number
+            <input name="roll_no" required>
+          </label>
+          <label>CGPA
+            <input name="cgpa" type="number" min="0" max="10" step="any" required>
+          </label>
+          <label>Phone number
+            <input name="phone_no" type="tel" autocomplete="tel" required>
+          </label>
+          <label>CNIC
+            <input name="cnic" autocomplete="off" required>
+          </label>
+        </div>
+        <div class="actions">
+          <button type="submit">Create student</button>
+          <button type="button" class="secondary" id="fill-demo">Fill demo data</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel" aria-labelledby="find-heading">
+      <h2 id="find-heading">Find a student</h2>
+      <form id="lookup-form" class="lookup-row">
+        <label for="lookup-value" class="visually-hidden">Search value</label>
+        <input id="lookup-value" name="value" placeholder="Search by name, roll no, CGPA, phone no, or CNIC" autocomplete="off" required>
+        <button type="submit">Find student</button>
+      </form>
+
+      <article id="search-results" class="search-results record" hidden aria-live="polite">
+        <h2 id="search-results-heading"></h2>
+        <div id="search-results-list" class="student-list"></div>
+      </article>
+
+      <article id="student-record" class="record" hidden aria-live="polite">
+        <div class="record-heading">
+          <div>
+            <h2 id="record-name"></h2>
+            <p id="record-roll"></p>
+          </div>
+          <div class="actions record-actions">
+            <button type="button" class="secondary" id="edit-button">Edit</button>
+            <button type="button" class="danger" id="delete-button" aria-label="Delete student">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 6h18"></path>
+                <path d="M8 6V4h8v2"></path>
+                <path d="m19 6-1 14H6L5 6"></path>
+                <path d="M10 11v5M14 11v5"></path>
+              </svg>
+              Delete
+            </button>
+          </div>
+        </div>
+        <dl class="details">
+          <div><dt>CGPA</dt><dd id="record-cgpa"></dd></div>
+          <div><dt>Phone number</dt><dd id="record-phone"></dd></div>
+          <div><dt>CNIC</dt><dd id="record-cnic"></dd></div>
+        </dl>
+      </article>
+
+      <form id="edit-form" class="edit-panel" hidden>
+        <h2>Edit student</h2>
+        <p class="section-note">Update the fields below and save your changes.</p>
+        <div class="fields">
+          <label>Full name
+            <input name="name" required>
+          </label>
+          <label>Roll number
+            <input name="roll_no" readonly>
+          </label>
+          <label>CGPA
+            <input name="cgpa" type="number" min="0" max="10" step="any" required>
+          </label>
+          <label>Phone number
+            <input name="phone_no" type="tel" required>
+          </label>
+          <label>CNIC
+            <input name="cnic" required>
+          </label>
+        </div>
+        <div class="actions">
+          <button type="submit">Save changes</button>
+          <button type="button" class="secondary" id="cancel-edit">Cancel</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel" aria-labelledby="students-heading">
+      <h2 id="students-heading">All students</h2>
+      <p class="section-note" id="student-count">Loading students...</p>
+      <div id="student-list" class="student-list" aria-live="polite"></div>
+      <nav id="student-pagination" class="pagination" aria-label="Student list pages" hidden>
+        <button type="button" class="secondary" id="previous-page">Previous</button>
+        <span id="pagination-page" class="pagination-page" aria-live="polite"></span>
+        <button type="button" class="secondary" id="next-page">Next</button>
+      </nav>
+    </section>
+
+    <p id="status" class="status" role="status" aria-live="polite"></p>
+  </main>
+
+  <script>
+    const createForm = document.querySelector("#create-form");
+    const lookupForm = document.querySelector("#lookup-form");
+    const editForm = document.querySelector("#edit-form");
+    const record = document.querySelector("#student-record");
+    const searchResults = document.querySelector("#search-results");
+    const searchResultsHeading = document.querySelector("#search-results-heading");
+    const searchResultsList = document.querySelector("#search-results-list");
+    const studentList = document.querySelector("#student-list");
+    const studentCount = document.querySelector("#student-count");
+    const pagination = document.querySelector("#student-pagination");
+    const paginationPage = document.querySelector("#pagination-page");
+    const lookupValue = document.querySelector("#lookup-value");
+    const status = document.querySelector("#status");
+    const pageSize = 5;
+    let currentPage = 1;
+    let currentStudent = null;
+    let demoSequence = 0;
+
+    function studentUrl(rollNo) {
+      return `/students/${encodeURIComponent(rollNo)}`;
+    }
+
+    function showStatus(message, isError = false) {
+      status.textContent = message;
+      status.classList.toggle("error", isError);
+    }
+
+    function renderStudentItems(students, container) {
+      container.replaceChildren();
+      for (const student of students) {
+        const item = document.createElement("article");
+        item.className = "student-item";
+
+        const details = document.createElement("div");
+        const name = document.createElement("h3");
+        name.textContent = student.name;
+        const summary = document.createElement("p");
+        summary.textContent = `Roll number: ${student.roll_no} · CGPA: ${student.cgpa}`;
+        details.append(name, summary);
+
+        const viewButton = document.createElement("button");
+        viewButton.type = "button";
+        viewButton.className = "secondary";
+        viewButton.textContent = "View";
+        viewButton.setAttribute("aria-label", `View ${student.name}`);
+        viewButton.addEventListener("click", () => {
+          setRecord(student);
+          showStatus(`Showing ${student.name}.`);
+        });
+
+        item.append(details, viewButton);
+        container.append(item);
+      }
+    }
+
+    async function request(method, url, body) {
+      const options = { method };
+      if (body !== undefined) {
+        options.headers = { "Content-Type": "application/json" };
+        options.body = JSON.stringify(body);
+      }
+
+      const response = await fetch(url, options);
+      if (response.status === 401) {
+        window.location.replace("/login");
+        throw new Error("Your session has expired. Please sign in again.");
+      }
+      const responseBody = response.status === 204 ? {} : await response.json();
+      if (!response.ok) {
+        throw new Error(responseBody.detail || `Request failed (${response.status})`);
+      }
+      return responseBody;
+    }
+
+    function renderStudents(students) {
+      const pageCount = Math.ceil(students.length / pageSize);
+      currentPage = Math.min(currentPage, Math.max(pageCount, 1));
+      const startIndex = (currentPage - 1) * pageSize;
+      studentCount.textContent = `${students.length} ${students.length === 1 ? "student" : "students"}`;
+      pagination.hidden = pageCount <= 1;
+      paginationPage.textContent = `Page ${currentPage} of ${pageCount}`;
+      document.querySelector("#previous-page").disabled = currentPage === 1;
+      document.querySelector("#next-page").disabled = currentPage === pageCount;
+
+      if (students.length === 0) {
+        studentList.replaceChildren();
+        const emptyMessage = document.createElement("p");
+        emptyMessage.className = "section-note";
+        emptyMessage.textContent = "No students yet. Add a student above to get started.";
+        studentList.append(emptyMessage);
+        return;
+      }
+
+      renderStudentItems(students.slice(startIndex, startIndex + pageSize), studentList);
+    }
+
+    async function refreshStudents(showLastPage = false) {
+      const response = await request("GET", "/students");
+      if (showLastPage) {
+        currentPage = Math.max(1, Math.ceil(response.students.length / pageSize));
+      }
+      renderStudents(response.students);
+    }
+
+    document.querySelector("#previous-page").addEventListener("click", async () => {
+      if (currentPage <= 1) return;
+      currentPage -= 1;
+      try {
+        await refreshStudents();
+      } catch (error) {
+        showStatus(error.message, true);
+      }
+    });
+
+    document.querySelector("#next-page").addEventListener("click", async () => {
+      currentPage += 1;
+      try {
+        await refreshStudents();
+      } catch (error) {
+        showStatus(error.message, true);
+      }
+    });
+
+    document.querySelector("#fill-demo").addEventListener("click", () => {
+      demoSequence += 1;
+      const uniqueId = `${Date.now().toString(36)}-${demoSequence}`;
+      createForm.elements.name.value = `Demo Student ${uniqueId}`;
+      createForm.elements.roll_no.value = `DEMO-${uniqueId}`;
+      createForm.elements.cgpa.value = (2 + (demoSequence % 80) / 10).toFixed(1);
+      createForm.elements.phone_no.value = `0300${Date.now().toString().slice(-7)}${String(demoSequence).padStart(2, "0")}`;
+      createForm.elements.cnic.value = `DEMO-CNIC-${uniqueId}`;
+      createForm.elements.name.focus();
+      showStatus("Unique demo data added to the form. Submit to create the student.");
+    });
+
+    function setRecord(student) {
+      currentStudent = student;
+      document.querySelector("#record-name").textContent = student.name;
+      document.querySelector("#record-roll").textContent = `Roll number: ${student.roll_no}`;
+      document.querySelector("#record-cgpa").textContent = student.cgpa;
+      document.querySelector("#record-phone").textContent = student.phone_no;
+      document.querySelector("#record-cnic").textContent = student.cnic;
+      record.hidden = false;
+      editForm.hidden = true;
+    }
+
+    createForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const values = Object.fromEntries(new FormData(createForm).entries());
+      values.cgpa = Number(values.cgpa);
+      showStatus("Creating student...");
+      try {
+        const response = await request("POST", "/students", values);
+        createForm.reset();
+        searchResults.hidden = true;
+        setRecord(response.student);
+        await refreshStudents(true);
+        showStatus("Student created successfully.");
+      } catch (error) {
+        showStatus(error.message, true);
+      }
+    });
+
+    lookupForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const formData = new FormData(lookupForm);
+      const value = formData.get("value").trim();
+      record.hidden = true;
+      editForm.hidden = true;
+      searchResults.hidden = true;
+      currentStudent = null;
+      showStatus("Searching students...");
+      try {
+        const params = new URLSearchParams({ value });
+        const response = await request("GET", `/students/search?${params}`);
+        if (response.students.length === 1) {
+          setRecord(response.students[0]);
+          showStatus("Student found.");
+        } else if (response.students.length > 1) {
+          searchResults.hidden = false;
+          searchResultsHeading.textContent = `${response.students.length} matches`;
+          renderStudentItems(response.students, searchResultsList);
+          showStatus(`${response.students.length} matching students found. Choose a record to view.`);
+        } else {
+          searchResults.hidden = false;
+          searchResultsHeading.textContent = "No matches";
+          searchResultsList.replaceChildren();
+          const emptyMessage = document.createElement("p");
+          emptyMessage.className = "section-note";
+          emptyMessage.textContent = "No students matched your search.";
+          searchResultsList.append(emptyMessage);
+          showStatus("No students found.");
+        }
+      } catch (error) {
+        currentStudent = null;
+        searchResults.hidden = true;
+        showStatus(error.message, true);
+      }
+    });
+
+    document.querySelector("#edit-button").addEventListener("click", () => {
+      if (!currentStudent) return;
+      for (const [name, value] of Object.entries(currentStudent)) {
+        editForm.elements[name].value = value;
+      }
+      editForm.hidden = false;
+      editForm.elements.name.focus();
+    });
+
+    editForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (!currentStudent) return;
+      const values = Object.fromEntries(new FormData(editForm).entries());
+      values.cgpa = Number(values.cgpa);
+      showStatus("Saving changes...");
+      try {
+        const response = await request("PATCH", studentUrl(currentStudent.roll_no), {
+          name: values.name,
+          cgpa: values.cgpa,
+          phone_no: values.phone_no,
+          cnic: values.cnic
+        });
+        setRecord(response.student);
+        searchResults.hidden = true;
+        await refreshStudents();
+        showStatus("Student updated successfully.");
+      } catch (error) {
+        showStatus(error.message, true);
+      }
+    });
+
+    document.querySelector("#cancel-edit").addEventListener("click", () => {
+      editForm.hidden = true;
+      showStatus("Changes were not saved.");
+    });
+
+    document.querySelector("#delete-button").addEventListener("click", async () => {
+      if (!currentStudent) return;
+      if (!window.confirm(`Delete ${currentStudent.name} (${currentStudent.roll_no})?`)) return;
+
+      const rollNo = currentStudent.roll_no;
+      showStatus("Deleting student...");
+      try {
+        await request("DELETE", studentUrl(rollNo));
+        currentStudent = null;
+        record.hidden = true;
+        editForm.hidden = true;
+        searchResults.hidden = true;
+        await refreshStudents();
+        showStatus(`Student ${rollNo} deleted successfully.`);
+      } catch (error) {
+        showStatus(error.message, true);
+      }
+    });
+
+    request("GET", "/auth/me").then((user) => {
+      document.querySelector("#signed-in-user").textContent = `Signed in as ${user.username}`;
+      return refreshStudents();
+    }).catch((error) => {
+      studentCount.textContent = "Could not load students.";
+      studentList.replaceChildren();
+      showStatus(error.message, true);
+    });
+
+    document.querySelector("#logout-button").addEventListener("click", async () => {
+      try {
+        await request("POST", "/auth/logout");
+        window.location.replace("/login");
+      } catch (error) {
+        showStatus(error.message, true);
+      }
+    });
+  </script>
+</body>
+</html>
